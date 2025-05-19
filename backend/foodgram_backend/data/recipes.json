@@ -1,0 +1,24 @@
+[
+  {
+    "author_id": 1,
+    "name": "Spaghetti Carbonara",
+    "text": "Boil pasta. Fry pancetta. Mix with eggs and cheese.",
+    "cooking_time": 20,
+    "image": "recipe_image_1.png",
+    "ingredients": [
+      {"name": "аграм", "amount": 200},
+      {"name": "анис", "amount": 2}
+    ]
+  },
+  {
+    "author_id": 2,
+    "name": "Tomato Soup",
+    "text": "Cook tomatoes and blend with spices.",
+    "cooking_time": 30,
+    "image": "recipe_image_1_8IsPA6n.png",
+    "ingredients": [
+      {"name": "аграм", "amount": 400},
+      {"name": "аспирин", "amount": 100}
+    ]
+  }
+]
