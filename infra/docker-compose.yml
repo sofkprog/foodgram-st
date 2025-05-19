@@ -1,17 +1,59 @@
 version: '3.3'
+
 services:
+  db:
+    image: postgres:15
+    container_name: db
+    env_file:
+      - ./.env
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ../backend/foodgram_backend
+    container_name: backend
+    working_dir: /app
+    command: >
+      sh -c "/wait-for-it.sh db:5432 --timeout=30 --strict -- 
+      python manage.py migrate --noinput &&
+      python manage.py collectstatic --noinput &&
+      gunicorn foodgram_backend.wsgi:application --bind 0.0.0.0:8000"
+    volumes:
+      - static_data:/app/backend/staticfiles
+      - media_data:/app/backend/media
+    depends_on:
+      - db
+    env_file:
+      - ./.env
+    ports:
+      - "8000:8000"
 
   frontend:
-    container_name: foodgram-front
-    build: ../frontend
+    build:
+      context: ../frontend
+    container_name: frontend
+    command: sh -c "cp -r build/* /frontend_build/"
     volumes:
-      - ../frontend/:/app/result_build/
+      - frontend_build:/frontend_build
+
   nginx:
-    container_name: foodgram-proxy
-    image: nginx:1.25.4-alpine
+    image: nginx:latest
+    container_name: nginx
     ports:
       - "80:80"
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
-      - ../frontend/build:/usr/share/nginx/html/
-      - ../docs/:/usr/share/nginx/html/api/docs/
+      - frontend_build:/usr/share/nginx/html
+      - static_data:/app/backend/staticfiles
+      - media_data:/app/backend/media
+    depends_on:
+      - backend
+      - frontend
+
+
+volumes:
+  pgdata:
+  frontend_build:
+  static_data:
+  media_data:
