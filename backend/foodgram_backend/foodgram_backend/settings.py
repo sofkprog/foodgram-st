@@ -25,17 +25,17 @@ SECRET_KEY = "django-insecure-j9dmhwjm*m#m2_h%&y22n1=kcq8)0a0ai@cl#$^px9*5ane^7z
 DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
-STATIC_URL = "/static/"
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
+STATIC_URL = '/static/'
+STATIC_ROOT = '/app/backend/staticfiles/'
+MEDIA_URL = '/media/'
+MEDIA_ROOT = '/app/backend/media/'
 
-# CORS_ORIGIN_ALLOW_ALL = True
+CORS_ORIGIN_ALLOW_ALL = True
 CORS_URLS_REGEX = r"^/api/.*$"
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-]
+# CORS_ALLOWED_ORIGINS = [
+#     "http://localhost:3000",
+# ]
 # Application definition
 
 INSTALLED_APPS = [
