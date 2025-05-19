@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/3.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
+
 import os
 from pathlib import Path
 
@@ -25,10 +26,10 @@ SECRET_KEY = "django-insecure-j9dmhwjm*m#m2_h%&y22n1=kcq8)0a0ai@cl#$^px9*5ane^7z
 DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
-STATIC_URL = '/static/'
-STATIC_ROOT = '/app/backend/staticfiles/'
-MEDIA_URL = '/media/'
-MEDIA_ROOT = '/app/backend/media/'
+STATIC_URL = "/static/"
+STATIC_ROOT = "/app/backend/staticfiles/"
+MEDIA_URL = "/media/"
+MEDIA_ROOT = "/app/backend/media/"
 
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_URLS_REGEX = r"^/api/.*$"
@@ -90,13 +91,13 @@ WSGI_APPLICATION = "foodgram_backend.wsgi.application"
 
 # Database
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('POSTGRES_DB'),
-        'USER': os.getenv('POSTGRES_USER'),
-        'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
-        'HOST': os.getenv('DB_HOST'),
-        'PORT': os.getenv('DB_PORT'),
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.getenv("POSTGRES_DB"),
+        "USER": os.getenv("POSTGRES_USER"),
+        "PASSWORD": os.getenv("POSTGRES_PASSWORD"),
+        "HOST": os.getenv("DB_HOST"),
+        "PORT": os.getenv("DB_PORT"),
     }
 }
 

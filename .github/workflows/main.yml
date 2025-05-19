@@ -26,7 +26,7 @@ jobs:
       - name: Wait for services
         run: |
           echo "Waiting for services to be up..."
-          sleep 30  # Лучше заменить на healthcheck, если настроено
+          sleep 30  
 
       - name: Install Newman
         run: npm install -g newman
