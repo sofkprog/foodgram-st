@@ -1,7 +1,7 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import RecipeViewSet, IngredientViewSet
-from .shopping_cart import manage_shopping_cart
+from api.recipes.views import RecipeViewSet, IngredientViewSet
+from api.recipes.shopping_cart import manage_shopping_cart
 
 router = DefaultRouter()
 router.register("ingredients", IngredientViewSet, basename="ingredient")

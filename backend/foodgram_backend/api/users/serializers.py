@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 from django.core.files.base import ContentFile
-from .models import CustomUser
+from users.models import CustomUser
 import base64
 import imghdr
 from django.contrib.auth import authenticate

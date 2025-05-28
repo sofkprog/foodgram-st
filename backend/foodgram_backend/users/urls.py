@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import (
+from api.users.views import (
     UserListRegisterView,
     UserDetailView,
     UserMeView,
@@ -8,7 +8,7 @@ from .views import (
     CustomAuthToken,
     LogoutView,
 )
-from .subscriptions import SubscriptionListView, SubscribeView
+from api.users.subscriptions import SubscriptionListView, SubscribeView
 
 urlpatterns = [
     path("auth/token/login/", CustomAuthToken.as_view(), name="token-login"),

@@ -17,7 +17,7 @@ class RecipeShortSerializer(serializers.ModelSerializer):
         fields = ("id", "name", "image", "cooking_time")
 
     def get_image(self, obj):
-        request = self.context.get("request")
+        request = self.context["request"]
         if obj.image:
             url = obj.image.url
             return request.build_absolute_uri(url) if request else url
@@ -46,10 +46,10 @@ class SubscriptionUserSerializer(serializers.ModelSerializer):
 
     def get_is_subscribed(self, obj):
         user = self.context["request"].user
-        return Subscription.objects.filter(user=user, author=obj).exists()
+        return obj.following.filter(user=user).exists()
 
     def get_recipes(self, obj):
-        request = self.context.get("request")
+        request = self.context["request"]
         recipes_limit = request.query_params.get("recipes_limit")
         recipes = obj.recipes.all()
         if recipes_limit:
@@ -72,6 +72,21 @@ class SubscriptionUserSerializer(serializers.ModelSerializer):
         return None
 
 
+class SubscriptionCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Subscription
+        fields = ("user", "author")
+
+    def validate(self, data):
+        if data["user"] == data["author"]:
+            raise serializers.ValidationError("Нельзя подписаться на самого себя.")
+        if Subscription.objects.filter(
+            user=data["user"], author=data["author"]
+        ).exists():
+            raise serializers.ValidationError("Вы уже подписаны на этого пользователя.")
+        return data
+
+
 class CustomPagination(PageNumberPagination):
     page_size_query_param = "limit"
 
@@ -91,22 +106,15 @@ class SubscribeView(APIView):
     def post(self, request, id):
         user = request.user
         author = get_object_or_404(CustomUser, id=id)
-
-        if user == author:
-            return Response(
-                {"errors": "Нельзя подписаться на самого себя."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        if Subscription.objects.filter(user=user, author=author).exists():
-            return Response(
-                {"errors": "Вы уже подписаны на этого пользователя."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        Subscription.objects.create(user=user, author=author)
-        serializer = SubscriptionUserSerializer(author, context={"request": request})
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        serializer = SubscriptionCreateSerializer(
+            data={"user": user.id, "author": author.id}
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        output_serializer = SubscriptionUserSerializer(
+            author, context={"request": request}
+        )
+        return Response(output_serializer.data, status=status.HTTP_201_CREATED)
 
     def delete(self, request, id):
         user = request.user

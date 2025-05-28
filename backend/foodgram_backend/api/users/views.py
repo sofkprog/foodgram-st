@@ -3,9 +3,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
-from django.shortcuts import get_object_or_404
-from .models import CustomUser
-from .serializers import (
+from users.models import CustomUser
+from api.users.serializers import (
     UserListSerializer,
     UserRegisterSerializer,
     UserDetailSerializer,
@@ -71,15 +70,14 @@ class AvatarView(APIView):
         serializer = AvatarSerializer(
             instance=request.user, data=request.data, context={"request": request}
         )
-        if serializer.is_valid():
-            serializer.save()
-            avatar_url = (
-                request.build_absolute_uri(request.user.avatar.url)
-                if request.user.avatar
-                else None
-            )
-            return Response({"avatar": avatar_url}, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        avatar_url = (
+            request.build_absolute_uri(request.user.avatar.url)
+            if request.user.avatar
+            else None
+        )
+        return Response({"avatar": avatar_url}, status=status.HTTP_200_OK)
 
     def delete(self, request):
         user = request.user
@@ -95,10 +93,9 @@ class SetPasswordView(APIView):
         serializer = SetPasswordSerializer(
             data=request.data, context={"request": request}
         )
-        if serializer.is_valid():
-            serializer.save()
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class LogoutView(APIView):

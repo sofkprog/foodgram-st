@@ -1,9 +1,9 @@
-from rest_framework import viewsets, status, filters, permissions
+from rest_framework import status, filters, permissions
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
-from .models import Recipe, Ingredient, ShoppingCart, RecipeIngredient
-from .serializers import (
+from recipes.models import Recipe, Ingredient, ShoppingCart, RecipeIngredient
+from api.recipes.serializers import (
     RecipeReadSerializer,
     RecipeWriteSerializer,
     IngredientSerializer,
@@ -14,8 +14,9 @@ from rest_framework import viewsets
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.exceptions import PermissionDenied
 from django.http import HttpResponse
-from .models import Favorite
-from .serializers import FavoriteRecipeSerializer
+from recipes.models import Favorite
+from api.recipes.serializers import FavoriteRecipeSerializer
+from django.db.models import Sum
 
 
 class NoPagination(PageNumberPagination):
@@ -83,22 +84,19 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"], permission_classes=[IsAuthenticated])
     def download_shopping_cart(self, request):
-        ingredients = {}
-
-        cart_items = ShoppingCart.objects.filter(user=request.user).select_related(
-            "recipe"
+        ingredients = (
+            RecipeIngredient.objects.filter(
+                recipe__is_in_shopping_cart__user=request.user
+            )
+            .values("ingredient__name", "ingredient__measurement_unit")
+            .annotate(total_amount=Sum("amount"))
+            .order_by("ingredient__name")
         )
-        for item in cart_items:
-            recipe_ingredients = RecipeIngredient.objects.filter(
-                recipe=item.recipe
-            ).select_related("ingredient")
-            for ri in recipe_ingredients:
-                name = ri.ingredient.name
-                unit = ri.ingredient.measurement_unit
-                key = f"{name} ({unit})"
-                ingredients[key] = ingredients.get(key, 0) + ri.amount
 
-        lines = [f"{name} — {amount}" for name, amount in ingredients.items()]
+        lines = [
+            f"{item['ingredient__name']} ({item['ingredient__measurement_unit']}) — {item['total_amount']}"
+            for item in ingredients
+        ]
         content = "\n".join(lines)
 
         response = HttpResponse(content, content_type="text/plain")
@@ -112,7 +110,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         recipe = get_object_or_404(Recipe, pk=pk)
 
         if request.method == "POST":
-            if Favorite.objects.filter(user=request.user, recipe=recipe).exists():
+            if recipe.is_favorited.filter(user=request.user).exists():
                 return Response(
                     {"errors": "Рецепт уже в избранном."},
                     status=status.HTTP_400_BAD_REQUEST,
@@ -122,7 +120,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         if request.method == "DELETE":
-            favorite = Favorite.objects.filter(user=request.user, recipe=recipe)
+            favorite = recipe.is_favorited.filter(user=request.user)
             if not favorite.exists():
                 return Response(
                     {"errors": "Рецепт не найден в избранном."},
