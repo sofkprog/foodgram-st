@@ -68,9 +68,7 @@ class UserDetailSerializer(serializers.ModelSerializer):
         user = self.context["request"].user
         if user.is_anonymous:
             return False
-        from .subscriptions import Subscription
-
-        return Subscription.objects.filter(user=user, author=obj).exists()
+        return obj.following.filter(user=user).exists()
 
     def get_avatar(self, obj):
         request = self.context.get("request")

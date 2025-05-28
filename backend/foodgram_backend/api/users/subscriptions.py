@@ -80,9 +80,7 @@ class SubscriptionCreateSerializer(serializers.ModelSerializer):
     def validate(self, data):
         if data["user"] == data["author"]:
             raise serializers.ValidationError("Нельзя подписаться на самого себя.")
-        if Subscription.objects.filter(
-            user=data["user"], author=data["author"]
-        ).exists():
+        if data["author"].following.filter(user=data["user"]).exists():
             raise serializers.ValidationError("Вы уже подписаны на этого пользователя.")
         return data
 
@@ -119,7 +117,7 @@ class SubscribeView(APIView):
     def delete(self, request, id):
         user = request.user
         author = get_object_or_404(CustomUser, id=id)
-        subscription = Subscription.objects.filter(user=user, author=author)
+        subscription = user.follower.filter(author=author)
 
         if not subscription.exists():
             return Response(
